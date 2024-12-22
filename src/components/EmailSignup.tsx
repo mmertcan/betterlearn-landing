@@ -1,4 +1,3 @@
-// src/components/EmailSignup.jsx
 'use client'
 import { useState, useEffect } from 'react'
 
@@ -11,9 +10,7 @@ export default function EmailSignup() {
     setMounted(true)
   }, [])
 
-  // Prevent hydration issues by not rendering until mounted
   if (!mounted) {
-    // Return a placeholder with the same dimensions to prevent layout shift
     return <div className="bg-white py-16 sm:py-24" />
   }
 
@@ -22,11 +19,12 @@ export default function EmailSignup() {
     setStatus('sending')
 
     try {
-      // We'll implement the actual form submission logic later
       await new Promise(resolve => setTimeout(resolve, 1000))
       setStatus('success')
       setEmail('')
-    } catch (error) {
+    } catch (_error: unknown) {
+      // Using underscore prefix and explicitly typing the error
+      console.error('Error submitting form:', _error)
       setStatus('error')
     }
   }
@@ -53,7 +51,7 @@ export default function EmailSignup() {
                     type="email"
                     id="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                     className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                     placeholder="Enter your email"
                   />
@@ -74,7 +72,7 @@ export default function EmailSignup() {
           
           {status === 'success' && (
             <p className="mt-4 text-center text-green-400">
-              Thanks for signing up! We'll be in touch soon.
+              Thanks for signing up! We&apos;ll be in touch soon.
             </p>
           )}
           {status === 'error' && (
