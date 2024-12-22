@@ -17,7 +17,7 @@ export default function EmailSignup() {
     return <div className="bg-white py-16 sm:py-24" />
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setStatus('sending')
 
