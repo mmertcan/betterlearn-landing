@@ -1,85 +1,91 @@
 'use client'
 import { useState, useEffect } from 'react'
 
+// First, we need to tell TypeScript about the Tally object that will be added to the window
+declare global {
+  interface Window {
+    Tally?: {
+      loadEmbeds: () => void
+    }
+  }
+}
+
 export default function EmailSignup() {
+  // This state tracks whether the component has mounted, which is important for client-side rendering
   const [mounted, setMounted] = useState(false)
-  const [email, setEmail] = useState('')
-  const [status, setStatus] = useState('')
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    // This effect runs once when the component mounts
+    // It handles loading and initializing the Tally script
 
+    // First, we define how Tally should be initialized
+    const initializeTally = () => {
+      if (typeof window.Tally !== 'undefined') {
+        window.Tally.loadEmbeds()
+      } else {
+        document.querySelectorAll("iframe[data-tally-src]:not([src])").forEach((element) => {
+          if (element instanceof HTMLIFrameElement) {
+            element.src = element.dataset.tallySrc || ''
+          }
+        })
+      }
+    }
+
+    // Create and set up the Tally script element
+    const script = document.createElement('script')
+    script.src = 'https://tally.so/widgets/embed.js'
+    script.async = true
+    script.onload = initializeTally
+    script.onerror = initializeTally
+
+    // Add the script to the document
+    document.body.appendChild(script)
+
+    // Mark the component as mounted
+    setMounted(true)
+
+    // Cleanup function that runs when the component unmounts
+    return () => {
+      try {
+        document.body.removeChild(script)
+      } catch (error) {
+        console.error('Error removing Tally script:', error)
+      }
+    }
+  }, []) // Empty dependency array means this effect runs once on mount
+
+  // Show nothing until the component has mounted
   if (!mounted) {
     return <div className="bg-white py-16 sm:py-24" />
   }
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setStatus('sending')
-
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setStatus('success')
-      setEmail('')
-    } catch (_error: unknown) {
-      // Using underscore prefix and explicitly typing the error
-      console.error('Error submitting form:', _error)
-      setStatus('error')
-    }
-  }
-
+  // The main render of our component
   return (
     <div id="signup" className="bg-white py-16 sm:py-24">
       <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="relative isolate overflow-hidden bg-gray-900 px-6 py-24 shadow-2xl sm:rounded-3xl sm:px-24">
+          {/* Header section */}
           <h2 className="mx-auto max-w-2xl text-center text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Get Early Access
           </h2>
+          
+          {/* Subheader text */}
           <p className="mx-auto mt-2 max-w-xl text-center text-lg leading-8 text-gray-300">
             Join our beta testing program and help shape the future of education.
           </p>
           
-          <form onSubmit={handleSubmit} className="mx-auto mt-10 max-w-md">
-            <div className="grid grid-cols-1 gap-x-8 gap-y-6">
-              <div>
-                <label htmlFor="email" className="block text-sm font-semibold leading-6 text-white">
-                  Email
-                </label>
-                <div className="mt-2.5">
-                  <input
-                    type="email"
-                    id="email"
-                    value={email}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                    className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                    placeholder="Enter your email"
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div className="mt-8 flex justify-center">
-              <button
-                type="submit"
-                disabled={status === 'sending'}
-                className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              >
-                {status === 'sending' ? 'Sending...' : 'Join Beta'}
-              </button>
-            </div>
-          </form>
-          
-          {status === 'success' && (
-            <p className="mt-4 text-center text-green-400">
-              Thanks for signing up! We&apos;ll be in touch soon.
-            </p>
-          )}
-          {status === 'error' && (
-            <p className="mt-4 text-center text-red-400">
-              Something went wrong. Please try again.
-            </p>
-          )}
+          {/* Tally.so embed iframe */}
+          <div className="mt-8 flex justify-center">
+            <iframe
+              data-tally-src="https://tally.so/embed/n92VpG?alignLeft=1&transparentBackground=1&dynamicHeight=1&hideTitle=1&customFormFont=Roboto"
+              loading="lazy"
+              width="100%"
+              height="248"
+              title="Get Early Access"
+              className="w-full border-0 m-0"
+              style={{ border: 'none' }}
+            ></iframe>
+          </div>
         </div>
       </div>
     </div>
